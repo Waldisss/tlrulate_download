@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rulate: тома в FB2
 // @namespace    https://github.com/Waldisss/tlrulate_download
-// @version      1.1.0
+// @version      1.1.1
 // @description  Собирает доступные для чтения главы тома в FB2 с иллюстрациями.
 // @match        https://tl.rulate.ru/book/*
 // @grant        GM_xmlhttpRequest
@@ -317,7 +317,37 @@
             for (const child of node.childNodes) await visit(child);
         }
         for (const node of root.childNodes) await visit(node);
-        return output.join('\n');
+
+        const emptyLine = '<empty-line/>';
+        const solidCount = output.filter((block) => block !== emptyLine).length;
+        const gapCounts = new Map();
+        for (let i = 0; i < output.length;) {
+            if (output[i] !== emptyLine) { i++; continue; }
+            let end = i + 1;
+            while (output[end] === emptyLine) end++;
+            if (i > 0 && end < output.length) {
+                const length = end - i;
+                gapCounts.set(length, (gapCounts.get(length) || 0) + 1);
+            }
+            i = end;
+        }
+        const [commonGap, occurrences] = [...gapCounts]
+            .sort((a, b) => b[1] - a[1])[0] || [0, 0];
+        const routineGap = solidCount >= 6 && occurrences >= 3
+            && occurrences / (solidCount - 1) >= 0.6 ? commonGap : 0;
+
+        const normalized = [];
+        for (let i = 0; i < output.length;) {
+            if (output[i] !== emptyLine) {
+                normalized.push(output[i++]);
+                continue;
+            }
+            let end = i + 1;
+            while (output[end] === emptyLine) end++;
+            if (i > 0 && end < output.length && end - i > routineGap) normalized.push(emptyLine);
+            i = end;
+        }
+        return normalized.join('\n');
     }
 
     function buildFb2(volume, chapters, images, cover, meta) {

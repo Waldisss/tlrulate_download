@@ -182,6 +182,17 @@ test('creates well-formed FB2 with formatting, escaped text, links and deduplica
     }
 });
 
+test('removes repeated empty editor paragraphs while keeping an extra scene break', async () => {
+    const { api } = setup('');
+    const gap = '<p></p><p><br></p>';
+    const paragraphs = ['Первый', 'Второй', 'Третий', 'Четвёртый', 'Пятый', 'Шестой'];
+    const content = '<p></p>' + paragraphs.map((text, index) =>
+        `<p>${text}</p>${index < paragraphs.length - 1 ? gap + (index === 2 ? gap : '') : ''}`).join('') + '<p></p>';
+    const root = api.parseChapterHtml(chapterHtml('12', content), '12', origin + '/12/ready_new');
+    const body = await api.renderBlocks(root, { cancelled: false, images: new Map(), failedImages: 0 }, origin + '/12/ready_new');
+    assert.equal(body, '<p>Первый</p>\n<p>Второй</p>\n<p>Третий</p>\n<empty-line/>\n<p>Четвёртый</p>\n<p>Пятый</p>\n<p>Шестой</p>');
+});
+
 test('retries transient chapter failures and stops on cancellation', async () => {
     const { window, api } = setup('');
     let calls = 0;
