@@ -1,0 +1,13 @@
+{
+  "name": "tlrulate-download",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Tampermonkey userscript for personal FB2 exports from Rulate",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "check": "node --check rulate-fb2.user.js && npm test"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}

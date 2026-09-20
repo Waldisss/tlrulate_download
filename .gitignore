@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+*.html
+*.fb2
+*.fb2.zip
+*.epub
+*.pdf
+*.docx
+*.session*
+*.cookies*
+.env*
+playwright/.auth/
